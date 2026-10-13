@@ -505,28 +505,25 @@
         const REAL_AD_URL = "https://uplcm.com/4/12021279";
 
         function watchAdReward(rewardType) {
-            // 1. تطبيق المكافأة داخل اللعبة فوراً
+            // 1. تطبيق وتعديل قيمة المكافأة داخل حفظ اللعبة أولاً
             applyReward(rewardType);
 
-            // 2. فتح الإعلان في نافذة/تبويب جديد بدلاً من استبدال اللعبة
-            window.open(REAL_AD_URL, '_blank');
+            // 2. توجيه مباشر ومضمون إلى رابط الإعان عبر window.location.href
+            // التوجيه يضمن فتح الإعلان حتى داخل تطبيقات الـ APK التي تحجب window.open
+            window.location.href = REAL_AD_URL;
         }
 
         function applyReward(type) {
             audio.playBuy();
             if (type === 'power') {
                 gameState.baseCpc += 1;
-                alert("🎉 Reward Claimed: Permanent +1 Click Power!");
             } else if (type === 'double') {
                 gameState.cookies = (gameState.cookies || 1) * 2;
                 gameState.allTimeCookies *= 2;
-                alert("🎉 Reward Claimed: Double Cookies Balance!");
             } else if (type === 'frenzy') {
                 triggerFrenzy();
-                alert("🎉 Reward Claimed: 10 Seconds 5x Frenzy Started!");
             } else if (type === 'autobot') {
                 gameState.autoCps += 1;
-                alert("🎉 Reward Claimed: +1 Auto-Bot Speed!");
             }
             saveGame();
             updateUI();
