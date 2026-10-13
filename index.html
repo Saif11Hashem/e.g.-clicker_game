@@ -290,13 +290,13 @@
                 </div>
             </section>
 
-            <!-- SCENE 3: REWARDED ADS SECTION (القسم الجديد للإعلانات) -->
+            <!-- SCENE 3: REAL REWARDED ADS SECTION (MONETAG INTEGRATED) -->
             <section id="scene-ads" class="scene-view">
                 <div class="bg-[var(--panel-bg)] backdrop-blur-md border-4 border-[var(--panel-border)] rounded-2xl p-4 h-full flex flex-col shadow-xl">
                     <h2 class="text-xl font-bold text-amber-600 mb-1 pb-2 border-b-2 border-amber-200 flex items-center gap-2">
                         <i class="fa-solid fa-film text-purple-600"></i> Free Rewards (Ads)
                     </h2>
-                    <p class="text-xs text-slate-500 mb-3">Watch a short video to get instant power-ups!</p>
+                    <p class="text-xs text-slate-500 mb-3">Watch sponsor ads to claim instant power-ups!</p>
 
                     <div class="flex-1 overflow-y-auto pr-1 space-y-3">
                         <!-- Ad Button 1: Power +1 -->
@@ -446,16 +446,16 @@
         </div>
     </main>
 
-    <!-- Modal Simulation Area for Ads -->
+    <!-- Modal Ad Simulation Area -->
     <div id="ad-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-4">
         <div class="bg-slate-800 border-4 border-purple-500 rounded-2xl p-6 text-center max-w-xs w-full text-white shadow-2xl relative">
             <div class="text-3xl mb-2 text-purple-400"><i class="fa-solid fa-tv animate-pulse"></i></div>
-            <h3 class="text-lg font-bold mb-1">Sponsored Video</h3>
-            <p class="text-xs text-slate-300 mb-4">Watching advertisement to claim your reward...</p>
+            <h3 class="text-lg font-bold mb-1">Sponsored Ad</h3>
+            <p class="text-xs text-slate-300 mb-4">Please view sponsor content to claim reward...</p>
             <div class="w-full bg-slate-700 h-3 rounded-full overflow-hidden mb-3">
                 <div id="ad-progress-bar" class="bg-purple-500 h-full w-0 transition-all duration-300"></div>
             </div>
-            <span id="ad-timer" class="text-xs font-mono text-purple-300">5 seconds remaining</span>
+            <span id="ad-timer" class="text-xs font-mono text-purple-300">3 seconds remaining</span>
         </div>
     </div>
 
@@ -513,6 +513,66 @@
         let frenzyActive = false;
         let frenzyTimer = null;
         let currentScene = 'clicker';
+
+        /* --- MONETAG DIRECT LINK CONFIGURATION --- */
+        const REAL_AD_URL = "https://uplcm.com/4/12021279";
+
+        function watchAdReward(rewardType) {
+            // فتح رابط الإعلان الحقيقي في متصفح الموبايل/نافذة جديدة
+            window.open(REAL_AD_URL, '_blank');
+
+            // محاكاة العد التنازلي ومنح المكافأة بعد العودة
+            showAdSimulation(rewardType);
+        }
+
+        function showAdSimulation(rewardType) {
+            const modal = document.getElementById('ad-modal');
+            const progressBar = document.getElementById('ad-progress-bar');
+            const timerText = document.getElementById('ad-timer');
+            
+            if (modal) {
+                modal.classList.remove('hidden');
+                progressBar.style.width = '0%';
+                
+                let timeLeft = 3;
+                timerText.innerText = `${timeLeft} seconds remaining`;
+
+                const interval = setInterval(() => {
+                    timeLeft -= 1;
+                    const progress = ((3 - timeLeft) / 3) * 100;
+                    progressBar.style.width = `${progress}%`;
+                    timerText.innerText = `${timeLeft} seconds remaining`;
+
+                    if (timeLeft <= 0) {
+                        clearInterval(interval);
+                        modal.classList.add('hidden');
+                        applyReward(rewardType);
+                    }
+                }, 1000);
+            } else {
+                applyReward(rewardType);
+            }
+        }
+
+        function applyReward(type) {
+            audio.playBuy();
+            if (type === 'power') {
+                gameState.baseCpc += 1;
+                alert("🎉 Reward Claimed: Permanent +1 Click Power!");
+            } else if (type === 'double') {
+                gameState.cookies = (gameState.cookies || 1) * 2;
+                gameState.allTimeCookies *= 2;
+                alert("🎉 Reward Claimed: Double Cookies Balance!");
+            } else if (type === 'frenzy') {
+                triggerFrenzy();
+                alert("🎉 Reward Claimed: 10 Seconds 5x Frenzy Started!");
+            } else if (type === 'autobot') {
+                gameState.autoCps += 1;
+                alert("🎉 Reward Claimed: +1 Auto-Bot Speed!");
+            }
+            saveGame();
+            updateUI();
+        }
 
         /* --- WEB AUDIO API --- */
         class AudioSystem {
@@ -660,69 +720,6 @@
             { id: 'clean', name: 'Clean', fontClass: 'font-clean' },
             { id: 'pixel', name: 'Retro Pixel', fontClass: 'font-pixel' }
         ];
-
-        /* --- REWARDED ADS LOGIC --- */
-        function watchAdReward(rewardType) {
-            // التحقق مما إذا كانت الشراكة مع شبكة إعلانات حقيقية موجودة (مثل CrazyGames أو GameDistribution)
-            if (window.CrazyGames && window.CrazyGames.SDK) {
-                window.CrazyGames.SDK.ad.requestAd("rewarded", {
-                    adStarted: () => { console.log("Ad started"); },
-                    adFinished: () => { applyReward(rewardType); },
-                    adError: (error) => {
-                        console.log("Ad error", error);
-                        alert("Ad failed to load. Please try again later.");
-                    }
-                });
-            } else {
-                // محاكاة إعلان عند تشغيل التطبيق كـ APK عادي بدون شبكة متصلة
-                showAdSimulation(rewardType);
-            }
-        }
-
-        function showAdSimulation(rewardType) {
-            const modal = document.getElementById('ad-modal');
-            const progressBar = document.getElementById('ad-progress-bar');
-            const timerText = document.getElementById('ad-timer');
-            
-            modal.classList.remove('hidden');
-            progressBar.style.width = '0%';
-            
-            let timeLeft = 5;
-            timerText.innerText = `${timeLeft} seconds remaining`;
-
-            const interval = setInterval(() => {
-                timeLeft -= 1;
-                const progress = ((5 - timeLeft) / 5) * 100;
-                progressBar.style.width = `${progress}%`;
-                timerText.innerText = `${timeLeft} seconds remaining`;
-
-                if (timeLeft <= 0) {
-                    clearInterval(interval);
-                    modal.classList.add('hidden');
-                    applyReward(rewardType);
-                }
-            }, 1000);
-        }
-
-        function applyReward(type) {
-            audio.playBuy();
-            if (type === 'power') {
-                gameState.baseCpc += 1;
-                alert("🎉 Reward Claimed: Permanent +1 Click Power!");
-            } else if (type === 'double') {
-                gameState.cookies = (gameState.cookies || 1) * 2;
-                gameState.allTimeCookies *= 2;
-                alert("🎉 Reward Claimed: Double Cookies Balance!");
-            } else if (type === 'frenzy') {
-                triggerFrenzy();
-                alert("🎉 Reward Claimed: 10 Seconds 5x Frenzy Started!");
-            } else if (type === 'autobot') {
-                gameState.autoCps += 1;
-                alert("🎉 Reward Claimed: +1 Auto-Bot Speed!");
-            }
-            saveGame();
-            updateUI();
-        }
 
         /* --- UI RENDER & UPDATE FUNCTIONS --- */
         function updateUI() {
