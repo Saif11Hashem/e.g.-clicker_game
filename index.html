@@ -505,11 +505,11 @@
         const REAL_AD_URL = "https://uplcm.com/4/12021279";
 
         function watchAdReward(rewardType) {
-            // 1. منح المكافأة للمستخدم داخل اللعبة فوراً
+            // 1. تطبيق المكافأة داخل اللعبة فوراً
             applyReward(rewardType);
 
-            // 2. فتح رابط الإعلان الحقيقي مباشرة داخل التطبيق/المتصفح
-            window.location.href = REAL_AD_URL;
+            // 2. فتح الإعلان في نافذة/تبويب جديد بدلاً من استبدال اللعبة
+            window.open(REAL_AD_URL, '_blank');
         }
 
         function applyReward(type) {
